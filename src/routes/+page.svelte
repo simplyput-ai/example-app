@@ -1,59 +1,76 @@
 <script lang="ts">
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcomeFallback from '$lib/images/svelte-welcome.png';
+	import Question from './components/Question.svelte';
+
+	interface CreateQuestionResponse {
+		questionId: string;
+		threadId: string;
+	}
+
+	interface Question {
+		questionId: string;
+		questionText: string;
+	}
+
+	let currentQuestion = '';
+	let questions: Question[] = [];
+	let threadId: string | undefined = undefined;
+
+	const askQuestion = async () => {
+		const res = await fetch('https://rest.simplyput.ai/app/v1/question', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'x-app-key': 'pk-rJ87sFMNgsYwzTDjRDjEndJY8SXfp'
+			},
+			body: JSON.stringify({
+				question: currentQuestion,
+				metadata: {
+					appUserId: 'demo-user'
+				}
+			})
+		});
+
+		const data: CreateQuestionResponse = await res.json();
+
+		if (!threadId) {
+			threadId = data.threadId;
+		}
+
+		const newQuestion: Question = {
+			questionId: data.questionId,
+			questionText: currentQuestion
+		};
+
+		questions = [...questions, newQuestion];
+	};
 </script>
 
 <svelte:head>
-	<title>Home</title>
-	<meta name="description" content="Svelte demo app" />
+	<title>Example App</title>
+	<meta name="description" content="SimplyPut example app" />
 </svelte:head>
 
+<h1 class="title">SimplyPut Example App</h1>
+<p class="description">Ask a question and get an answer!</p>
+
+{#if threadId}
+	<p class="thread-id">Thread ID: {threadId}</p>
+{/if}
+
+{#if questions.length > 0}
+	<section class="mb-4">
+		{#each questions as q}
+			<div class="question">
+				<h2 class="text-red">{q.questionText}</h2>
+				<Question questionId={q.questionId} />
+			</div>
+		{/each}
+	</section>
+{/if}
+
 <section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcomeFallback} alt="Welcome" />
-			</picture>
-		</span>
-
-		to your new<br />SvelteKit app
-	</h1>
-
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
+	<form class="form" on:submit={askQuestion}>
+		<input class="input" type="text" bind:value={currentQuestion} placeholder="ask a question..." />
+		<button class="button" type="submit">Submit</button>
+	</form>
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
