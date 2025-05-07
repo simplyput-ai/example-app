@@ -24,6 +24,7 @@
 			},
 			body: JSON.stringify({
 				question: currentQuestion,
+				threadId: threadId ? threadId : undefined,
 				metadata: {
 					appUserId: 'demo-user'
 				}
@@ -50,27 +51,28 @@
 	<meta name="description" content="SimplyPut example app" />
 </svelte:head>
 
-<h1 class="title">SimplyPut Example App</h1>
-<p class="description">Ask a question and get an answer!</p>
+<div class="mx-auto p-2">
+	<h1 class="title my-3 font-semibold">SimplyPut Example App</h1>
 
-{#if threadId}
-	<p class="thread-id">Thread ID: {threadId}</p>
-{/if}
+	{#if threadId}
+		<p class="text-sm">Thread ID: {threadId}</p>
+	{/if}
 
-{#if questions.length > 0}
-	<section class="mb-4">
-		{#each questions as q}
-			<div class="question">
-				<h2 class="text-red">{q.questionText}</h2>
-				<Question questionId={q.questionId} />
-			</div>
-		{/each}
+	{#if questions.length > 0}
+		<section class="my-4">
+			{#each questions as q}
+				<div class="question">
+					<h2 class="text-red">{q.questionText}</h2>
+					<Question questionId={q.questionId} />
+				</div>
+			{/each}
+		</section>
+	{/if}
+
+	<section>
+		<form class="w-1/3" on:submit={askQuestion}>
+			<input type="text" bind:value={currentQuestion} placeholder="ask a question..." />
+			<button type="submit">Submit</button>
+		</form>
 	</section>
-{/if}
-
-<section>
-	<form class="form" on:submit={askQuestion}>
-		<input class="input" type="text" bind:value={currentQuestion} placeholder="ask a question..." />
-		<button class="button" type="submit">Submit</button>
-	</form>
-</section>
+</div>
